@@ -13,6 +13,11 @@
 <body>
     <h1>【管理者】予約管理パネル</h1>
 
+    <div id="loadingOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; color:white; flex-direction:column; align-items:center; justify-content:center;">
+    <div style="font-size: 24px; font-weight: bold; margin-bottom: 10px;">予約処理中...</div>
+    <p>そのまま少々お待ちください</p>
+    </div>
+
     <div style="margin-bottom: 20px;">
     <button onclick="clearAllReservations()" style="background: #333; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">
         【重要】すべての予約をリセットする
@@ -75,3 +80,4 @@
 </body>
 
 </html>
+
