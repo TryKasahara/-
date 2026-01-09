@@ -12,6 +12,13 @@
 </head>
 <body>
     <h1>【管理者】予約管理パネル</h1>
+
+    <div style="margin-bottom: 20px;">
+    <button onclick="clearAllReservations()" style="background: #333; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">
+        【重要】すべての予約をリセットする
+    </button>
+    </div>
+    
     <div id="grid" class="grid"></div>
 
     <script>
@@ -44,7 +51,27 @@
             });
             location.reload();
         }
+
+        async function clearAllReservations() {
+            if (!confirm("本当に全ての予約データを消去してもよろしいですか？\nこの操作は取り消せません。")) return;
+            
+            // 二重確認（誤操作防止）
+            if (!confirm("最終確認です。よろしいですか？")) return;
+        
+            try {
+                await fetch(GAS_URL, {
+                    method: "POST",
+                    body: JSON.stringify({ action: "clear" })
+                });
+                alert("すべての予約を削除しました。");
+                location.reload();
+            } catch (e) {
+                alert("エラーが発生しました。");
+            }
+        }
+        
         init();
     </script>
 </body>
+
 </html>
