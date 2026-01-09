@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8"><title>自習室予約（生徒用）</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; background: #f0f4f8; }
+        .grid { display: grid; grid-template-columns: 80px repeat(10, 1fr); gap: 5px; max-width: 950px; margin: auto; background: white; padding: 10px; }
+        .cell { height: 60px; border: 1px solid #ddd; display: flex; align-items: center; justify-content: center; font-size: 11px; cursor: pointer; }
+        .header, .time-label { background: #eee; font-weight: bold; }
+        .reserved { background: #ffcccb; cursor: not-allowed; }
+        .reserved::after { content: "予約済"; }
+    </style>
+</head>
+<body>
+    <h1>自習室 予約システム</h1>
+    <div id="grid" class="grid"></div>
+
+    <script>
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbzPD9OBmhtdicciSPVmGJNypyq0NVmLwaFu0ChFeOVKqtg4p36boKYG5kTkSPv97iK5/exec";
+        const startTime = 16, endTime = 21, seats = 10;
+
+        async function init() {
+            const res = await fetch(GAS_URL);
+            const reservedData = await res.json();
+            const grid = document.getElementById('grid');
+            
+            // ヘッダー作成
+            grid.innerHTML = '<div class="cell header">時間</div>';
+            for(let i=1; i<=seats; i++) grid.innerHTML += `<div class="cell header">${i}番</div>`;
+
+            for(let h=startTime; h<endTime; h++) {
+                grid.innerHTML += `<div class="cell time-label">${h}:00</div>`;
+                for(let s=1; s<=seats; s++) {
+                    const isReserved = reservedData.some(d => d.time == h && d.seat == s);
+                    const cellClass = isReserved ? 'reserved' : 'available';
+                    grid.innerHTML += `<div class="cell ${cellClass}" onclick="reserve(${h}, ${s}, ${isReserved})"></div>`;
+                }
+            }
+        }
+
+        async function reserve(h, s, isReserved) {
+            if(isReserved) return alert("この席は既に予約されています");
+            const name = prompt("お名前を入力してください");
+            if(!name) return;
+            
+            await fetch(GAS_URL, {
+                method: "POST",
+                body: JSON.stringify({time: h, seat: s, name: name, action: "reserve"})
+            });
+            alert("予約しました！");
+            location.reload();
+        }
+        init();
+    </script>
+</body>
+</html>

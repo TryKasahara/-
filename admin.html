@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8"><title>自習室管理（管理者用）</title>
+    <style>
+        /* CSSは生徒用とほぼ同じですが、reservedの色を少し変える等も可 */
+        body { font-family: sans-serif; text-align: center; }
+        .grid { display: grid; grid-template-columns: 80px repeat(10, 1fr); gap: 5px; max-width: 950px; margin: auto; }
+        .cell { height: 60px; border: 1px solid #ddd; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 10px; cursor: pointer; }
+        .reserved { background: #ff5252; color: white; }
+    </style>
+</head>
+<body>
+    <h1>【管理者】予約管理パネル</h1>
+    <div id="grid" class="grid"></div>
+
+    <script>
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbzPD9OBmhtdicciSPVmGJNypyq0NVmLwaFu0ChFeOVKqtg4p36boKYG5kTkSPv97iK5/exec";
+        async function init() {
+            const res = await fetch(GAS_URL);
+            const data = await res.json();
+            const grid = document.getElementById('grid');
+            grid.innerHTML = '<div class="cell">時間</div>';
+            for(let i=1; i<=10; i++) grid.innerHTML += `<div class="cell">${i}番</div>`;
+
+            for(let h=16; h<21; h++) {
+                grid.innerHTML += `<div class="cell">${h}:00</div>`;
+                for(let s=1; s<=10; s++) {
+                    const record = data.find(d => d.time == h && d.seat == s);
+                    const content = record ? `${record.name}<br>[削除]` : "空き";
+                    const cellClass = record ? 'reserved' : '';
+                    grid.innerHTML += `<div class="cell ${cellClass}" onclick="remove(${h}, ${s}, ${!!record})">${content}</div>`;
+                }
+            }
+        }
+
+        async function remove(h, s, isReserved) {
+            if(!isReserved) return;
+            if(!confirm(`${h}時 ${s}番の予約を削除しますか？`)) return;
+            
+            await fetch(GAS_URL, {
+                method: "POST",
+                body: JSON.stringify({time: h, seat: s, action: "delete"})
+            });
+            location.reload();
+        }
+        init();
+    </script>
+</body>
+</html>
