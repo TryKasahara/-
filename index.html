@@ -9,11 +9,24 @@
         .header, .time-label { background: #eee; font-weight: bold; }
         .reserved { background: #ffcccb; cursor: not-allowed; }
         .reserved::after { content: "予約済"; }
+        /* クリックした瞬間に少し透明にする（反応を視覚化） */
+        .cell:active {
+            opacity: 0.5;
+        }
+        /* 処理中のカーソルを変更 */
+        #loadingOverlay {
+            cursor: wait;
+        }
     </style>
 </head>
 <body>
     <h1>自習室 予約システム</h1>
     <div id="grid" class="grid"></div>
+
+    <div id="loadingOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; color:white; flex-direction:column; align-items:center; justify-content:center;">
+    <div style="font-size: 24px; font-weight: bold; margin-bottom: 10px;">予約処理中...</div>
+    <p>そのまま少々お待ちください</p>
+    </div>
 
     <script>
         const GAS_URL = "https://script.google.com/macros/s/AKfycbzPD9OBmhtdicciSPVmGJNypyq0NVmLwaFu0ChFeOVKqtg4p36boKYG5kTkSPv97iK5/exec";
@@ -43,15 +56,27 @@
             const name = prompt("お名前を入力してください");
             if(!name) return;
             
-            await fetch(GAS_URL, {
-                method: "POST",
-                body: JSON.stringify({time: h, seat: s, name: name, action: "reserve"})
-            });
-            alert("予約しました！");
-            location.reload();
+            // ★ローディング表示を開始
+            const overlay = document.getElementById('loadingOverlay');
+            overlay.style.display = 'flex';
+            
+            try {
+                await fetch(GAS_URL, {
+                    method: "POST",
+                    body: JSON.stringify({time: h, seat: s, name: name, action: "reserve"})
+                });
+                alert("予約しました！");
+                location.reload();
+            } catch (e) {
+                alert("通信エラーが発生しました。もう一度やり直してください。");
+            } finally {
+                // ★万が一エラーが起きてもロックを解除する
+                overlay.style.display = 'none';
+            }
         }
         init();
     </script>
 </body>
 
 </html>
+
